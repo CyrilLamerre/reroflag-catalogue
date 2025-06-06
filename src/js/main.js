@@ -17,28 +17,16 @@ const state = {
 // Utilitaires
 const formatPrice = value => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value);
 
-// Récupérer tous les produits depuis Airtable
-async function fetchProductsFromAirtable() {
-  const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}?pageSize=100`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_TOKEN}`
-    }
-  });
-  const data = await res.json();
-  // On parse le prix pour obtenir un nombre
-  return data.records.map(r => ({
-    id: r.id,
-    ...r.fields,
-    Prix: typeof r.fields.Prix === 'number'
-      ? r.fields.Prix
-      : parseFloat((r.fields.Prix || '0').replace('€', '').replace(',', '.'))
-  }));
+// Récupérer tous les produits depuis Netlify Function
+async function fetchProductsFromAPI() {
+  const res = await fetch('/.netlify/functions/getProducts');
+  const products = await res.json();
+  return products;
 }
 
 // Chargement dynamique des modèles
 async function loadModels() {
-  state.products = await fetchProductsFromAirtable();
+  state.products = await fetchProductsFromAPI();
   const grid = document.getElementById('models-grid');
   grid.innerHTML = '';
   // On récupère les types de modèles uniques (Flag Plume, Flag Goutte, Flag Droit)
@@ -247,7 +235,7 @@ function updateTotal() {
   document.getElementById('quote-btn').disabled = total === 0;
 }
 
-// Génération du devis (PDF uniquement)
+// Génération du devis (PDF uniquement) + enregistrement dans Airtable via Netlify Function
 async function generateQuote(clientInfo) {
   try {
     // Récupérer les accessoires sélectionnés
@@ -267,6 +255,18 @@ async function generateQuote(clientInfo) {
     const pdfGenerator = new PDFGenerator();
     const pdf = pdfGenerator.generateQuote(clientInfo, products, state.prices.base + state.prices.accessories);
     pdf.save('devis-reroflag.pdf');
+
+    // Enregistrement du devis dans Airtable via Netlify Function
+    await fetch('/.netlify/functions/createQuote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...clientInfo,
+        total: state.prices.base + state.prices.accessories,
+        selection: products
+      })
+    });
+
     return { success: true };
   } catch (error) {
     console.error('Erreur lors de la génération du devis:', error);
