@@ -9,12 +9,14 @@
   },
   "dependencies": {
     "airtable": "^0.12.1",
-    "jspdf": "^2.5.1",
-    "jspdf-autotable": "^3.8.1",
+    "form-data": "^4.0.3",
+    "googleapis": "^105.0.0",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "nodemailer": "^6.9.7"
   },
   "devDependencies": {
-    "live-server": "^1.2.2",
+    "live-server": "^1.2.0",
     "tailwindcss": "^3.3.0"
   }
-} 
+}

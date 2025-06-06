@@ -1,3 +1,6 @@
+const { google } = require('googleapis');
+const path = require('path');
+const fs = require('fs');
 const fetch = require('node-fetch');
 
 exports.handler = async function(event, context) {
@@ -37,38 +40,49 @@ exports.handler = async function(event, context) {
     // Devis PDF sera ajouté plus bas si besoin
   };
 
-  // Upload du PDF sur gofile.io si présent
+  // --- UPLOAD PDF SUR GOOGLE DRIVE ---
+  const CREDENTIALS_PATH = path.join(__dirname, 'reroflag-ccf1d7ea86bc.json');
+  const DRIVE_FOLDER_ID = '0ABj3XuEafBk7Uk9PVA';
+
+  async function uploadToDrive(base64, filename) {
+    const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH, 'utf8'));
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/drive.file'],
+    });
+    const drive = google.drive({ version: 'v3', auth });
+    const buffer = Buffer.from(base64, 'base64');
+    const res = await drive.files.create({
+      requestBody: {
+        name: filename,
+        parents: [DRIVE_FOLDER_ID],
+      },
+      media: {
+        mimeType: 'application/pdf',
+        body: buffer,
+      },
+      fields: 'id,webViewLink,webContentLink',
+    });
+    await drive.permissions.create({
+      fileId: res.data.id,
+      requestBody: {
+        role: 'reader',
+        type: 'anyone',
+      },
+    });
+    return res.data.webViewLink;
+  }
+
   let pdfUrl = null;
   if (data.pdfBase64) {
     try {
-      // 1. Obtenir le serveur d'upload recommandé par gofile.io
-      const serverRes = await fetch('https://api.gofile.io/getServer');
-      const serverJson = await serverRes.json();
-      const server = serverJson.data.server;
-      // 2. Uploader le PDF
-      const formData = new FormData();
-      const pdfBuffer = Buffer.from(data.pdfBase64, 'base64');
-      formData.append('file', pdfBuffer, 'devis-reroflag.pdf');
-      const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
-        method: 'POST',
-        body: formData
-      });
-      const uploadJson = await uploadRes.json();
-      if (uploadJson.status === 'ok' && uploadJson.data && uploadJson.data.downloadPage) {
-        pdfUrl = uploadJson.data.downloadPage;
-        fields['Devis PDF'] = [ { url: pdfUrl } ];
-      } else {
-        console.error('Erreur upload PDF gofile.io:', uploadJson);
-        return {
-          statusCode: 500,
-          body: JSON.stringify({ error: 'Erreur upload PDF gofile.io', details: uploadJson })
-        };
-      }
+      pdfUrl = await uploadToDrive(data.pdfBase64, 'devis-reroflag.pdf');
+      fields['Devis PDF'] = [{ url: pdfUrl }];
     } catch (err) {
-      console.error('Erreur upload PDF gofile.io:', err);
+      console.error('Erreur upload PDF Google Drive:', err);
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Erreur upload PDF gofile.io', details: err.message })
+        body: JSON.stringify({ error: 'Erreur upload PDF Google Drive', details: err.message })
       };
     }
   }
