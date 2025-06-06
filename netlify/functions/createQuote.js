@@ -17,6 +17,14 @@ exports.handler = async function(event, context) {
     return { statusCode: 400, body: 'Invalid JSON' };
   }
 
+  // Conversion du total en nombre (float)
+  let total = data.total;
+  if (typeof total === 'string') {
+    total = total.replace(/[^0-9.,-]/g, '').replace(',', '.');
+    total = parseFloat(total);
+  }
+  if (isNaN(total)) total = 0;
+
   // Prépare les champs à enregistrer (adapter selon ta table Devis)
   const fields = {
     Date: new Date().toISOString(),
@@ -25,9 +33,30 @@ exports.handler = async function(event, context) {
     Email: data.email,
     Téléphone: data.phone,
     Société: data.company,
-    Total: data.total,
-    Sélection: JSON.stringify(data.selection)
+    Total: total
+    // Devis PDF sera ajouté plus bas si besoin
   };
+
+  // Upload du PDF sur file.io si présent
+  let pdfUrl = null;
+  if (data.pdfBase64) {
+    try {
+      const uploadRes = await fetch('https://file.io/?expires=1d', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: Buffer.from(data.pdfBase64, 'base64')
+      });
+      const uploadJson = await uploadRes.json();
+      if (uploadJson.success && uploadJson.link) {
+        pdfUrl = uploadJson.link;
+        fields['Devis PDF'] = [ { url: pdfUrl } ];
+      } else {
+        console.error('Erreur upload PDF file.io:', uploadJson);
+      }
+    } catch (err) {
+      console.error('Erreur upload PDF file.io:', err);
+    }
+  }
 
   const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}`;
   let res, result;
