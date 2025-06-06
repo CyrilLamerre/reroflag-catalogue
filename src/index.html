@@ -1,0 +1,84 @@
+<!--\n  Catalogue en ligne Reroflag - Prototype UX\/UI (version fix)\n  Technologies : HTML5, TailwindCSS 3.x (via CDN), Vanilla JS\n  Palette : RF-Orange #FF9900 · RF-Black #1E1E1E · Grey #F3F3F3\n  Police : 'Montserrat', sans-serif (Google Fonts)\n-->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Catalogue Reroflag</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="css/output.css" rel="stylesheet" />
+  </head>
+  <body class="bg-gray-100 text-gray-900 font-montserrat">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-20">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+        <img src="images/logo.svg" alt="Logo Reroflag" class="h-10 w-auto" />
+        <h1 class="text-xl font-semibold">Catalogue en ligne Reroflag</h1>
+      </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="max-w-7xl mx-auto px-4 py-10 space-y-16 pb-24">
+      <!-- Étape 1 : choix du modèle -->
+      <section id="step-models">
+        <h2 class="text-2xl font-semibold mb-6">1. Choisissez votre <span class="text-rf-orange">modèle</span></h2>
+        <div id="models-grid" class="grid md:grid-cols-3 gap-8">
+          <!-- Les modèles seront chargés dynamiquement -->
+        </div>
+      </section>
+
+      <!-- Étape 2 : choix de la taille -->
+      <section id="step-sizes" class="opacity-50 pointer-events-none transition-all duration-300">
+        <h2 class="text-2xl font-semibold mb-6">2. Choisissez la <span class="text-rf-orange">taille</span></h2>
+        <div id="sizes-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          <!-- Les tailles seront chargées dynamiquement -->
+        </div>
+      </section>
+
+      <!-- Étape 3 : accessoires -->
+      <section id="step-accessories" class="opacity-50 pointer-events-none transition-all duration-300">
+        <h2 class="text-2xl font-semibold mb-6">3. Ajoutez des <span class="text-rf-orange">pieds / accessoires</span></h2>
+        <div id="accessories-grid" class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <!-- Les accessoires seront chargés dynamiquement -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Bandeau de bas de page fixe -->
+    <div id="sticky-bar" class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg py-3 z-30">
+      <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
+        <div class="text-lg font-semibold">Total : <span id="total-price" class="text-rf-orange">0 €</span></div>
+        <button id="quote-btn" disabled class="bg-rf-orange text-white font-semibold px-6 py-2 rounded-lg shadow disabled:opacity-40 disabled:cursor-not-allowed transition">Obtenir mon devis</button>
+      </div>
+    </div>
+
+    <!-- Modal Devis -->
+    <div id="quote-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-40">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
+        <div class="flex justify-between items-start mb-6">
+          <h3 class="text-xl font-semibold">Vos informations</h3>
+          <button id="modal-close" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+        <form id="quote-form" class="space-y-4">
+          <div class="grid md:grid-cols-2 gap-4">
+            <input required name="firstname" placeholder="Prénom" class="field" />
+            <input required name="lastname" placeholder="Nom" class="field" />
+          </div>
+          <input required name="company" placeholder="Nom de la société" class="field" />
+          <div class="grid md:grid-cols-2 gap-4">
+            <input required name="phone" placeholder="Téléphone" class="field" />
+            <input required type="email" name="email" placeholder="Email" class="field" />
+          </div>
+          <button type="submit" class="w-full bg-rf-orange text-white font-semibold py-2 rounded-lg">Générer le devis</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
