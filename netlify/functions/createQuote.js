@@ -52,9 +52,17 @@ exports.handler = async function(event, context) {
         fields['Devis PDF'] = [ { url: pdfUrl } ];
       } else {
         console.error('Erreur upload PDF file.io:', uploadJson);
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ error: 'Erreur upload PDF file.io', details: uploadJson })
+        };
       }
     } catch (err) {
       console.error('Erreur upload PDF file.io:', err);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Erreur upload PDF file.io', details: err.message })
+      };
     }
   }
 

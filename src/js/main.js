@@ -260,7 +260,7 @@ async function generateQuote(clientInfo) {
     const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
     // Enregistrement du devis dans Airtable via Netlify Function
-    await fetch('/.netlify/functions/createQuote', {
+    const response = await fetch('/.netlify/functions/createQuote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -269,10 +269,15 @@ async function generateQuote(clientInfo) {
         pdfBase64
       })
     });
-
+    const result = await response.json();
+    if (!response.ok) {
+      alert('Erreur lors de l\'enregistrement du devis : ' + (result.error || 'Erreur inconnue') + '\n' + (result.details ? JSON.stringify(result.details) : ''));
+      return { success: false, error: result };
+    }
     return { success: true };
   } catch (error) {
     console.error('Erreur lors de la génération du devis:', error);
+    alert('Erreur lors de la génération du devis : ' + (error.message || error));
     return { success: false, error };
   }
 }
