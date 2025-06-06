@@ -42,7 +42,7 @@ exports.handler = async function(event, context) {
   };
 
   // --- UPLOAD PDF SUR GOOGLE DRIVE ---
-  const DRIVE_FOLDER_ID = '0ABj3XuEafBk7Uk9PVA';
+  const DRIVE_FOLDER_ID = '1ptU2Qhk3a3-9DPJyQD7FI1EcHG_4SYl4';
 
   async function uploadToDrive(base64, filename) {
     const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
