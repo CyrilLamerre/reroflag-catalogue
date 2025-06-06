@@ -2,6 +2,7 @@ const { google } = require('googleapis');
 const path = require('path');
 const fs = require('fs');
 const fetch = require('node-fetch');
+const { Readable } = require('stream');
 
 exports.handler = async function(event, context) {
   if (event.httpMethod !== 'POST') {
@@ -51,6 +52,7 @@ exports.handler = async function(event, context) {
     });
     const drive = google.drive({ version: 'v3', auth });
     const buffer = Buffer.from(base64, 'base64');
+    const stream = Readable.from(buffer);
     const res = await drive.files.create({
       requestBody: {
         name: filename,
@@ -58,7 +60,7 @@ exports.handler = async function(event, context) {
       },
       media: {
         mimeType: 'application/pdf',
-        body: buffer,
+        body: stream,
       },
       fields: 'id,webViewLink,webContentLink',
     });
