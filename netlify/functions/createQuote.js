@@ -41,11 +41,10 @@ exports.handler = async function(event, context) {
   };
 
   // --- UPLOAD PDF SUR GOOGLE DRIVE ---
-  const CREDENTIALS_PATH = path.join(__dirname, 'reroflag-ccf1d7ea86bc.json');
   const DRIVE_FOLDER_ID = '0ABj3XuEafBk7Uk9PVA';
 
   async function uploadToDrive(base64, filename) {
-    const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH, 'utf8'));
+    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
     const auth = new google.auth.GoogleAuth({
       credentials,
       scopes: ['https://www.googleapis.com/auth/drive.file'],
