@@ -256,6 +256,9 @@ async function generateQuote(clientInfo) {
     const pdf = pdfGenerator.generateQuote(clientInfo, products, state.prices.base + state.prices.accessories);
     pdf.save('devis-reroflag.pdf');
 
+    // Récupérer le PDF en base64 (sans l'en-tête data:...)
+    const pdfBase64 = pdf.output('datauristring').split(',')[1];
+
     // Enregistrement du devis dans Airtable via Netlify Function
     await fetch('/.netlify/functions/createQuote', {
       method: 'POST',
@@ -263,7 +266,7 @@ async function generateQuote(clientInfo) {
       body: JSON.stringify({
         ...clientInfo,
         total: state.prices.base + state.prices.accessories,
-        selection: products
+        pdfBase64
       })
     });
 
