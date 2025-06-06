@@ -37,31 +37,38 @@ exports.handler = async function(event, context) {
     // Devis PDF sera ajouté plus bas si besoin
   };
 
-  // Upload du PDF sur file.io si présent
+  // Upload du PDF sur gofile.io si présent
   let pdfUrl = null;
   if (data.pdfBase64) {
     try {
-      const uploadRes = await fetch('https://file.io/?expires=1d', {
+      // 1. Obtenir le serveur d'upload recommandé par gofile.io
+      const serverRes = await fetch('https://api.gofile.io/getServer');
+      const serverJson = await serverRes.json();
+      const server = serverJson.data.server;
+      // 2. Uploader le PDF
+      const formData = new FormData();
+      const pdfBuffer = Buffer.from(data.pdfBase64, 'base64');
+      formData.append('file', pdfBuffer, 'devis-reroflag.pdf');
+      const uploadRes = await fetch(`https://${server}.gofile.io/uploadFile`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body: Buffer.from(data.pdfBase64, 'base64')
+        body: formData
       });
       const uploadJson = await uploadRes.json();
-      if (uploadJson.success && uploadJson.link) {
-        pdfUrl = uploadJson.link;
+      if (uploadJson.status === 'ok' && uploadJson.data && uploadJson.data.downloadPage) {
+        pdfUrl = uploadJson.data.downloadPage;
         fields['Devis PDF'] = [ { url: pdfUrl } ];
       } else {
-        console.error('Erreur upload PDF file.io:', uploadJson);
+        console.error('Erreur upload PDF gofile.io:', uploadJson);
         return {
           statusCode: 500,
-          body: JSON.stringify({ error: 'Erreur upload PDF file.io', details: uploadJson })
+          body: JSON.stringify({ error: 'Erreur upload PDF gofile.io', details: uploadJson })
         };
       }
     } catch (err) {
-      console.error('Erreur upload PDF file.io:', err);
+      console.error('Erreur upload PDF gofile.io:', err);
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Erreur upload PDF file.io', details: err.message })
+        body: JSON.stringify({ error: 'Erreur upload PDF gofile.io', details: err.message })
       };
     }
   }
