@@ -9,7 +9,13 @@ exports.handler = async function(event, context) {
   const AIRTABLE_TABLE = process.env.AIRTABLE_QUOTE_TABLE;
   const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 
-  const data = JSON.parse(event.body);
+  let data;
+  try {
+    data = JSON.parse(event.body);
+  } catch (err) {
+    console.error('Erreur de parsing JSON:', err, event.body);
+    return { statusCode: 400, body: 'Invalid JSON' };
+  }
 
   // Prépare les champs à enregistrer (adapter selon ta table Devis)
   const fields = {
@@ -24,15 +30,31 @@ exports.handler = async function(event, context) {
   };
 
   const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ fields })
-  });
-  const result = await res.json();
+  let res, result;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ fields })
+    });
+    result = await res.json();
+    if (!res.ok) {
+      console.error('Airtable API error:', res.status, result);
+      return {
+        statusCode: res.status,
+        body: JSON.stringify({ error: 'Airtable API error', details: result })
+      };
+    }
+  } catch (err) {
+    console.error('Erreur lors de la requête Airtable:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Erreur lors de la requête Airtable', details: err.message })
+    };
+  }
 
   return {
     statusCode: 200,
