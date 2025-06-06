@@ -71,14 +71,14 @@ exports.handler = async function(event, context) {
         type: 'anyone',
       },
     });
-    return res.data.webViewLink;
+    return res.data.id;
   }
 
   let pdfUrl = null;
   if (data.pdfBase64) {
     try {
       pdfUrl = await uploadToDrive(data.pdfBase64, 'devis-reroflag.pdf');
-      fields['Devis PDF'] = [{ url: pdfUrl }];
+      fields['Devis PDF'] = [{ url: `https://drive.google.com/uc?export=download&id=${pdfUrl}` }];
     } catch (err) {
       console.error('Erreur upload PDF Google Drive:', err);
       return {
